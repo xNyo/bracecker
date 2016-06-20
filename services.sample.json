@@ -1,0 +1,5 @@
+[
+	{"name":"website", "url":"http://example.com"},
+	{"name":"blog", "url":"http://blog.example.com"},
+	{"name":"forum", "url":"http://forum.example.com"}
+]
