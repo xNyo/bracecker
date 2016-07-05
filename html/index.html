@@ -36,7 +36,7 @@
 
 		$.each(names, function (i, name) {
 
-			$.getJSON('http://127.0.0.1:6996/api/response_time?service=' + name.toLowerCase(), function (data) {
+			$.getJSON('/api/response_time?service=' + name.toLowerCase(), function (data) {
 
 				seriesOptions[i] = {
 					name: name,
