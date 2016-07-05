@@ -2,6 +2,7 @@ import glob
 import requests
 import time
 import threading
+import json
 
 class checker:
 	"""Single checker instance"""
@@ -10,6 +11,7 @@ class checker:
 		self.url = url
 		self.uptime = 0	# cache
 		self.up = False	# cache
+		self.responseTimesJson = "" #cache
 
 class checkers:
 	def __init__(self, interval = 60, timeout = 5, allowedCodes = [404]):
@@ -45,6 +47,16 @@ class checkers:
 			i.up = True if total[len(total)-1]["response_time"] > -1 else False
 			i.uptime = float("{:.2f}".format((100*upCount)/len(total)))
 
+	def cacheResponseTimes(self):
+		"""Cache response times from db"""
+		print("Saving json response in memory...")
+		for i in self.checkers:
+			data = []
+			query = glob.db.fetchAll("SELECT response_time, time FROM status WHERE service = ? ORDER BY time ASC", [i.name])
+			for j in query:
+				data.append([int(j["time"])*1000, float(j["response_time"])])
+			i.responseTimesJson = json.dumps(data)
+		print("Done")
 
 	def check(self):
 		"""Check loop. Call only once"""
@@ -69,6 +81,7 @@ class checkers:
 		# Save new data in sqlite db and update uptime
 		self.save(data)
 		self.updateUptime()
+		self.cacheResponseTimes()
 
 		# Schedule a new check
 		print("Next check in {} seconds\n".format(self.interval))
