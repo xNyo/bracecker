@@ -31,8 +31,8 @@ class ResponseTimeHandler(tornado.web.RequestHandler):
 	def get(self):
 		# Return a json list with all responses times
 		service = self.get_argument("service")
-		data = []
-		query = glob.db.fetchAll("SELECT response_time, time FROM status WHERE service = ? ORDER BY time ASC", [service])
-		for i in query:
-			data.append([int(i["time"])*1000, float(i["response_time"])])
-		self.write(json.dumps(data))
+		for i in glob.brace.checkers:
+			if i.name == service:
+				self.write(i.responseTimesJson)
+				return
+		self.write("[]")
