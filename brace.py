@@ -52,7 +52,7 @@ class checkers:
 		print("Saving json response in memory...")
 		for i in self.checkers:
 			data = []
-			query = glob.db.fetchAll("SELECT response_time, time FROM status WHERE service = ? ORDER BY time ASC", [i.name])
+			query = glob.db.fetchAll("SELECT response_time, time FROM status WHERE service = ? AND time >= ? ORDER BY time ASC", [i.name, int(time.time())-3600])
 			for j in query:
 				data.append([int(j["time"])*1000, float(j["response_time"])])
 			i.responseTimesJson = json.dumps(data)
