@@ -1,6 +1,5 @@
 import db
 import glob
-import brace
 import tornado.web
 import os
 import json
@@ -48,11 +47,12 @@ if __name__ == "__main__":
 				raise
 
 		# Initialize datadog agent
-		datadog.initialize(glob.datadogConfig["apiKey"], glob.datadogConfig["appKey"])
+		datadog.initialize(api_key=glob.datadogConfig["apiKey"], app_key=glob.datadogConfig["appKey"])
 		glob.datadog = datadog.ThreadStats()
 		glob.datadog.start()
 
 	# Load and create services
+	import brace
 	glob.brace = brace.checkers(interval=args.interval, datadog=glob.datadog)
 	with open("services.json", "r") as f:
 		try:

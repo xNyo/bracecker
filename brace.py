@@ -3,6 +3,7 @@ import requests
 import time
 import threading
 import json
+import datadog
 
 class ServiceDownException(Exception):
 	pass
@@ -43,6 +44,7 @@ class checkers:
 			query += "(NULL, '{}', '{}', '{}')".format(v["name"], t, v["time"])
 			if glob.datadog is not None:
 				glob.datadog.gauge("bracecker.response_time.{}".format(v["name"]), v["time"])
+				datadog.statsd.service_check("bracecker.up.{}".format(v["name"]), 2 if v["time"] <= -1 else 0)
 		glob.db.execute(query)
 
 	def updateUptime(self):
