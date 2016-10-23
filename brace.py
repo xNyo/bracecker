@@ -4,6 +4,9 @@ import time
 import threading
 import json
 
+class ServiceDownException(Exception):
+	pass
+
 class checker:
 	"""Single checker instance"""
 	def __init__(self, name, url):
@@ -14,12 +17,13 @@ class checker:
 		self.responseTimesJson = "" #cache
 
 class checkers:
-	def __init__(self, interval = 60, timeout = 5, allowedCodes = [404]):
+	def __init__(self, interval = 60, timeout = 5, allowedCodes = [404], datadog = None):
 		"""Initialize a list of checkers"""
 		self.checkers = []
 		self.interval = interval
 		self.timeout = timeout
 		self.allowedCodes = allowedCodes
+		self.datadog = datadog
 
 	def addChecker(self, name, url):
 		"""Register a new checker"""
@@ -33,10 +37,12 @@ class checkers:
 		"""Save content of data list in db [{"name", "time"}]"""
 		t = int(time.time())
 		query = "INSERT INTO status (id, service, time, response_time) VALUES"
-		for i,v in enumerate(data):
+		for i, v  in enumerate(data):
 			if i > 0:
 				query += ","
 			query += "(NULL, '{}', '{}', '{}')".format(v["name"], t, v["time"])
+			if glob.datadog is not None:
+				glob.datadog.gauge("bracecker.response_time.{}".format(v["name"]), v["time"])
 		glob.db.execute(query)
 
 	def updateUptime(self):
@@ -46,9 +52,13 @@ class checkers:
 			total = glob.db.fetchAll("SELECT response_time FROM status WHERE service = ? ORDER BY time ASC", [i.name])
 			i.up = True if total[len(total)-1]["response_time"] > -1 else False
 			i.uptime = float("{:.2f}".format((100*upCount)/len(total)))
+			if glob.datadog is not None:
+				glob.datadog.gauge("bracecker.uptime.{}".format(i.name), i.uptime)
 
 	def cacheResponseTimes(self):
 		"""Cache response times from db"""
+		if self.datadog is not None:
+			return
 		print("Saving json response in memory...")
 		for i in self.checkers:
 			data = []
@@ -66,14 +76,14 @@ class checkers:
 				# Ping the service
 				print("Checking {}... ".format(i.name), end="")
 				response = requests.get(i.url, timeout=self.timeout)
-				print(" ({}) ".format(response.status_code), end="")
+				print("\t({}) ".format(response.status_code), end="")
 				if (response.status_code < 200 or response.status_code > 226) and response.status_code not in self.allowedCodes:
-					raise
+					raise ServiceDownException
 				print("UP!")
 
 				# No errors, service is up
 				data.append({"name": i.name, "time": response.elapsed.total_seconds()})
-			except:
+			except (ServiceDownException, Exception):
 				# Error, service is down
 				print("DOWN!")
 				data.append({"name": i.name, "time": -1})
