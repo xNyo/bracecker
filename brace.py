@@ -18,13 +18,14 @@ class checker:
 		self.responseTimesJson = "" #cache
 
 class checkers:
-	def __init__(self, interval = 60, timeout = 5, allowedCodes = [404], datadog = None):
+	def __init__(self, interval = 60, timeout = 5, allowedCodes = [404], datadog = None, webServer = None):
 		"""Initialize a list of checkers"""
 		self.checkers = []
 		self.interval = interval
 		self.timeout = timeout
 		self.allowedCodes = allowedCodes
 		self.datadog = datadog
+		self.webServer = webServer
 
 	def addChecker(self, name, url):
 		"""Register a new checker"""
@@ -59,12 +60,12 @@ class checkers:
 
 	def cacheResponseTimes(self):
 		"""Cache response times from db"""
-		if self.datadog is not None:
+		if self.webServer is None:
 			return
 		print("Saving json response in memory...")
 		for i in self.checkers:
 			data = []
-			query = glob.db.fetchAll("SELECT response_time, time FROM status WHERE service = ? AND time >= ? ORDER BY time ASC", [i.name, int(time.time())-3600])
+			query = glob.db.fetchAll("SELECT response_time, time FROM status WHERE service = ? AND time >= ? ORDER BY time ASC LIMIT 100", [i.name, int(time.time())-3600])
 			for j in query:
 				data.append([int(j["time"])*1000, float(j["response_time"])])
 			i.responseTimesJson = json.dumps(data)

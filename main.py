@@ -6,13 +6,16 @@ import json
 import jinja2
 import handlers
 import argparse
-import datadog
+import threading
 
 if __name__ == "__main__":
 	# CLI arguments
 	parser = argparse.ArgumentParser(description="Check uptime and response times of your services")
 	parser.add_argument("-d", "--datadog", dest="datadog",
-						help="If true, don't start webserver and send data to datadog. No data will be stored in db.",
+						help="If present, report data to datadog.",
+						action="store_true")
+	parser.add_argument("-n", "--noweb", dest="noWeb",
+						help="If present, don't start the bracecker web server. Use it along with --datadog if you just want to report response times and uptime to datadog.",
 						action="store_true")
 	parser.add_argument("-p", "--port", dest="port", help="Webserver port", default=6996, type=int)
 	parser.add_argument("-c", "--check-every", dest="interval", help="Number of seconds to wait between checks", default=60, type=int)
@@ -35,6 +38,7 @@ if __name__ == "__main__":
 
 	# Set up datadog agent
 	if args.datadog:
+		import datadog
 		# Load datadog api and app key=
 		with open("datadog.json", "r") as f:
 			try:
@@ -53,7 +57,7 @@ if __name__ == "__main__":
 
 	# Load and create services
 	import brace
-	glob.brace = brace.checkers(interval=args.interval, datadog=glob.datadog)
+	glob.brace = brace.checkers(interval=args.interval, datadog=glob.datadog, webServer=True if args.noWeb is None else False)
 	with open("services.json", "r") as f:
 		try:
 			content = f.read()
@@ -69,7 +73,7 @@ if __name__ == "__main__":
 
 	# Create and start tornado server
 	# if we are not in datadog mode
-	if not args.datadog:
+	if not args.noWeb:
 		app = tornado.web.Application([
 				(r"/", handlers.MainHandler),
 				(r"/api/response_time", handlers.ResponseTimeHandler)
