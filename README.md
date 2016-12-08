@@ -43,13 +43,16 @@ _Make sure to create `datadog.json` if you want to use bracecker with datadog. U
 
 ## Configuration files
 #### services.json
-Bracecker will look for the services to check inside the `services.json` file. It's super easy to config, use `services.sample.json` as a sample. You can also create a file called `announcement.txt` in the same directory as bracecker and its message will be shown on the website as an announcement. Use it to alert your users about maintenance or technical issues. Remember to restart bracecker whenever you edit `services.json` or `announcement.txt`
+Bracecker will look for the services to check inside the `services.json` file. It's super easy to config, use `services.sample.json` as a sample.
 Bracecker will consider a service as **UP** if the HTTP status code the service returns is between **200 and 226 (inclusive) or 404**, everything else or a timeout (5 secs) will mark the service as **DOWN**.
 
 #### datadog.json
 If you want to use bracecker along with datadog (`--datadog` argument), make sure to create a `datadog.json` file with your datadog api key and app key. Use `datadog.sample.json` as a sample.
 Bracecker will report response time and uptime to datadog as metrics (`bracecker.response_time.*` and `bracecker.uptime.*`). Keep in mind that it might take some minutes for the metrics to appear if it's the first time you're using bracecker with datadog.
 Bracecker will also create custom checks on datadog (`bracecker.up.*`) that will automatically change if the service is up or down, so you can use them easily when creating monitors.
+
+### announcement.txt
+You can also create a file called `announcement.txt` in the same directory as bracecker and its message will be shown on the website as an announcement. Use it to alert your users about maintenance or technical issues. Bracecker will automatically reload announcement.txt's content every 60 seconds.
 
 ## CLI arguments
 Bracecker supports some CLI arguments. Run `python3 main.py --help` to see the full list.

@@ -8,6 +8,17 @@ import handlers
 import argparse
 import threading
 
+def updateAnnouncement():
+	"""
+	Reload announcement.txt
+	:return:
+	"""
+	if os.path.isfile("announcement.txt"):
+		with open("announcement.txt") as f:
+			glob.announcement = f.read()
+	else:
+		glob.announcement = ""
+
 if __name__ == "__main__":
 	# CLI arguments
 	parser = argparse.ArgumentParser(description="Check uptime and response times of your services")
@@ -31,10 +42,9 @@ if __name__ == "__main__":
 	if newDB == True:
 		glob.db.execute("CREATE TABLE `status` (`id` INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, `service` INTEGER, `time` INTEGER, `response_time` INTEGER);")
 
-	# Load announcement
-	if os.path.isfile("announcement.txt"):
-		with open("announcement.txt") as f:
-			glob.announcement = f.read()
+	# Reload announcement.txt every 60 seconds
+	updateAnnouncement()
+	threading.Timer(60, updateAnnouncement).start()
 
 	# Set up datadog agent
 	if args.datadog:
