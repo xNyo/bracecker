@@ -21,20 +21,20 @@ $ nano services.json
 ...
 ```
 
-#### Web server only setup
+### Web server only setup
 If you want a simple web page that displays your uptime, run bracecker with:
 ```
 $ python3 main.py
 ```
 
-#### Datadog + Web server
+### Datadog + Web server
 If you want bracecker to report response times and uptime to datadog and display the uptime on a web page, run bracecker with:
 ```
 $ python3 main.py --datadog
 ```
 _Make sure to create `datadog.json` if you want to use bracecker with datadog. Use `datadog.sample.json` as a sample._
 
-#### Datadog only setup
+### Datadog only setup
 If you want bracecker to report response times and uptime to datadog, without the web page for that displays uptime, run:
 ```
 $ python3 main.py --datadog --noweb
@@ -42,11 +42,11 @@ $ python3 main.py --datadog --noweb
 _Make sure to create `datadog.json` if you want to use bracecker with datadog. Use `datadog.sample.json` as a sample._
 
 ## Configuration files
-#### services.json
+### services.json
 Bracecker will look for the services to check inside the `services.json` file. It's super easy to config, use `services.sample.json` as a sample.
 Bracecker will consider a service as **UP** if the HTTP status code the service returns is between **200 and 226 (inclusive) or 404**, everything else or a timeout (5 secs) will mark the service as **DOWN**.
 
-#### datadog.json
+### datadog.json
 If you want to use bracecker along with datadog (`--datadog` argument), make sure to create a `datadog.json` file with your datadog api key and app key. Use `datadog.sample.json` as a sample.
 Bracecker will report response time and uptime to datadog as metrics (`bracecker.response_time.*` and `bracecker.uptime.*`). Keep in mind that it might take some minutes for the metrics to appear if it's the first time you're using bracecker with datadog.
 Bracecker will also create custom checks on datadog (`bracecker.up.*`) that will automatically change if the service is up or down, so you can use them easily when creating monitors.
